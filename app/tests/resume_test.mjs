@@ -1,0 +1,25 @@
+import { createRequire } from 'node:module';
+const puppeteer = createRequire('C:/dev/webharvest/package.json')('puppeteer');
+const browser = await puppeteer.launch({ headless: true, executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', defaultViewport: { width: 1280, height: 900 } });
+const page = await browser.newPage();
+const wait = ms => new Promise(r => setTimeout(r, ms));
+page.on('pageerror', e => console.log('PAGEERROR', String(e)));
+page.on('dialog', d => d.accept());
+await page.goto('http://localhost:8765/#home', { waitUntil: 'networkidle0' });
+await page.evaluate(() => { localStorage.removeItem('fpgalingo.v1'); });
+await page.reload({ waitUntil: 'networkidle0' });
+await page.evaluate(() => { const S = window.__app.S; S.settings.hearts = false; localStorage.setItem('fpgalingo.v1', JSON.stringify(S)); });
+await page.goto('http://localhost:8765/#day/1', { waitUntil: 'networkidle0' }); await page.reload({ waitUntil: 'networkidle0' });
+await page.waitForSelector('#beginBtn'); await page.click('#beginBtn'); await wait(300);
+for (let i = 0; i < 6; i++) { await page.evaluate(() => window.__lesson.next()); await wait(80); }
+const before = await page.evaluate(() => ({ prompt: (window.__lesson.current.prompt || window.__lesson.current.title || '').slice(0, 40), resume: JSON.parse(localStorage.getItem('fpgalingo.v1')).resume }));
+console.log('mid-lesson: step', before.prompt, '| saved done =', before.resume && before.resume.done, 'of', before.resume && before.resume.total);
+await page.goto('http://localhost:8765/#home', { waitUntil: 'networkidle0' }); await page.reload({ waitUntil: 'networkidle0' }); await wait(300);
+console.log('home:', await page.evaluate(() => document.querySelector('.hero').textContent.match(/Daily goal[^\n]*?steps done|Resume Day \d+/g)));
+await page.goto('http://localhost:8765/#day/1', { waitUntil: 'networkidle0' }); await page.reload({ waitUntil: 'networkidle0' }); await wait(300);
+const hasResume = await page.$('#resumeBtn'); console.log('resume button:', !!hasResume, await page.evaluate(() => document.querySelector('#resumeBtn')?.textContent));
+await page.screenshot({ path: 'C:/dev/study/app/shots/v-resume.png' });
+await page.click('#resumeBtn'); await wait(400);
+const after = await page.evaluate(() => (window.__lesson.current.prompt || window.__lesson.current.title || '').slice(0, 40));
+console.log('resumed at step:', after, '| same as before:', after === before.prompt);
+await browser.close();

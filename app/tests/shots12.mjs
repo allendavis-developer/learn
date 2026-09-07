@@ -1,0 +1,20 @@
+import { createRequire } from 'node:module';
+const puppeteer = createRequire('C:/dev/webharvest/package.json')('puppeteer');
+const browser = await puppeteer.launch({ headless: true, executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', defaultViewport: { width: 1280, height: 900, deviceScaleFactor: 1.5 } });
+const page = await browser.newPage();
+const wait = ms => new Promise(r => setTimeout(r, ms));
+page.on('pageerror', e => console.log('PAGEERROR', String(e)));
+page.on('console', m => { if (m.type() === 'error') console.log('CONSOLE', m.text()); });
+await page.goto('http://localhost:8765/#home', { waitUntil: 'networkidle0' });
+await page.evaluate(() => { localStorage.removeItem('fpgalingo.v1'); });
+await page.reload({ waitUntil: 'networkidle0' });
+await page.evaluate(() => { const S = window.__app.S; S.settings.hearts = false; S.settings.unlockAll = true; localStorage.setItem('fpgalingo.v1', JSON.stringify(S)); });
+await page.goto('http://localhost:8765/#day/1', { waitUntil: 'networkidle0' }); await page.reload({ waitUntil: 'networkidle0' }); await wait(300);
+await page.waitForSelector('#beginBtn'); await page.click('#beginBtn'); await wait(300);
+for (let i = 0; i < 40; i++) { const c = await page.evaluate(() => window.__lesson.current); if (c && c.strand === 'E' && c.type === 'info') break; await page.evaluate(() => window.__lesson.next()); await wait(60); }
+await wait(300);
+const info = await page.evaluate(() => { const w = document.querySelector('.widget'); const svg = w && w.querySelector('svg'); return { widget: !!w, svg: !!svg, svgChildren: svg ? svg.childElementCount : 0, svgBox: svg ? JSON.stringify(svg.getBoundingClientRect()) : null, sliders: w ? w.querySelectorAll('input[type=range]').length : 0, html: w ? w.innerHTML.slice(0, 300) : '' }; });
+console.log(JSON.stringify(info, null, 1));
+await page.evaluate(() => { const w = document.querySelector('.widget'); w.scrollIntoView({ block: 'start' }); window.scrollBy(0, -60); }); await wait(300);
+await page.screenshot({ path: 'C:/dev/study/app/shots/x-ohm2.png' });
+await browser.close(); console.log('done');

@@ -1,0 +1,20 @@
+import { createRequire } from 'node:module';
+const puppeteer = createRequire('C:/dev/webharvest/package.json')('puppeteer');
+const browser = await puppeteer.launch({ headless: true, executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', defaultViewport: { width: 1280, height: 900, deviceScaleFactor: 1.5 } });
+const page = await browser.newPage();
+const wait = ms => new Promise(r => setTimeout(r, ms));
+page.on('pageerror', e => console.log('PAGEERROR', String(e)));
+await page.goto('http://localhost:8765/#home', { waitUntil: 'networkidle0' });
+await page.evaluate(() => { localStorage.removeItem('fpgalingo.v1'); });
+await page.reload({ waitUntil: 'networkidle0' });
+await page.evaluate(() => { const S = window.__app.S; S.settings.hearts = false; localStorage.setItem('fpgalingo.v1', JSON.stringify(S)); });
+await page.goto('http://localhost:8765/#day/1', { waitUntil: 'networkidle0' }); await page.reload({ waitUntil: 'networkidle0' });
+await page.waitForSelector('#beginBtn'); await page.click('#beginBtn'); await wait(300);
+for (let i = 0; i < 40; i++) { const p = await page.evaluate(() => window.__lesson.current && window.__lesson.current.prompt || ''); if (/both dice show a 6/.test(p)) break; await page.evaluate(() => window.__lesson.next()); await wait(60); }
+await page.click('.answer-input'); await page.keyboard.type('1/36'); await wait(200);
+await page.screenshot({ path: 'C:/dev/study/app/shots/w-mathkb.png' });
+await page.keyboard.press('Enter'); await wait(400);
+const foot = await page.evaluate(() => ({ cls: document.querySelector('.lesson-foot').className, text: document.querySelector('.lesson-foot').textContent.slice(0, 120), stillSame: /both dice show a 6/.test(window.__lesson.current?.prompt || '') }));
+console.log('after Enter:', JSON.stringify(foot));
+await page.screenshot({ path: 'C:/dev/study/app/shots/w-mathkb-result.png' });
+await browser.close();

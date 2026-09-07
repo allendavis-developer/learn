@@ -1,0 +1,10 @@
+import { createRequire } from 'node:module';
+const puppeteer = createRequire('C:/dev/webharvest/package.json')('puppeteer');
+const browser = await puppeteer.launch({ headless: true, executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', defaultViewport: { width: 1280, height: 900, deviceScaleFactor: 1.5 } });
+const page = await browser.newPage();
+await page.goto('http://localhost:8765/#home', { waitUntil: 'networkidle0' });
+await page.evaluate(() => localStorage.removeItem('fpgalingo.v1'));
+await page.reload({ waitUntil: 'networkidle0' }); await new Promise(r => setTimeout(r, 400));
+console.log(await page.evaluate(() => document.querySelector('.hero .pill')?.textContent + ' | ' + document.querySelector('.hero h1')?.textContent));
+await page.screenshot({ path: 'C:/dev/study/app/shots/s-home-today.png' });
+await browser.close();

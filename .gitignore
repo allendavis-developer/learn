@@ -1,0 +1,10 @@
+# Generated visual and test artifacts
+app/shots/
+app/tests/*.log
+app/tests/math_spans.txt
+
+# Local runtime debris
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
