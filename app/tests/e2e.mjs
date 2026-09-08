@@ -35,7 +35,14 @@ for (let d = from; d <= to; d++) {
     else if (info.type === 'multi') { await page.evaluate(is => { is.forEach(i => document.querySelector(`button.opt[data-idx="${i}"]`).click()); }, info.answers); await page.click('#checkBtn'); }
     else if (info.type === 'numeric') { await page.evaluate(v => { const inp = document.querySelector('input.answer-input'); inp.value = String(v); inp.dispatchEvent(new Event('input')); }, info.numeric); await page.click('#checkBtn'); }
     else if (info.type === 'text') { await page.evaluate(v => { const inp = document.querySelector('input.answer-input'); inp.value = v; inp.dispatchEvent(new Event('input')); }, info.text); await page.click('#checkBtn'); }
-    else if (info.type === 'tokens') { for (const t of info.tokens) await page.evaluate(t => { const tk = [...document.querySelectorAll('.token-bank .tok')].find(b => b.dataset.text === t && !b.classList.contains('used')); tk.click(); }, t); await page.click('#checkBtn'); }
+    else if (info.type === 'tokens') {
+      const place = t => page.evaluate(t => { const tk = [...document.querySelectorAll('.token-bank .tok')].find(b => b.dataset.text === t && !b.classList.contains('used')); tk.click(); }, t);
+      for (const t of info.tokens) await place(t);
+      // regression guard: removing a placed token then re-adding it must not break Check
+      await page.evaluate(() => { const placed = [...document.querySelectorAll('.token-area .tok')]; placed[placed.length - 1].click(); });
+      await place(info.tokens[info.tokens.length - 1]);
+      await page.click('#checkBtn');
+    }
     else if (info.type === 'order') { for (let i = 0; i < info.items.length; i++) await page.evaluate(i => { document.querySelector(`.order-item[data-i="${i}"]`).click(); }, i); await page.click('#checkBtn'); }
     else if (info.type === 'match') {
       for (let i = 0; i < info.pairs.length; i++) await page.evaluate(i => { const cols = [...document.querySelectorAll('.match-col')]; cols[0].querySelector(`.mt[data-i="${i}"]`).click(); cols[1].querySelector(`.mt[data-i="${i}"]`).click(); }, i);

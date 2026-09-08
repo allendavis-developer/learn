@@ -35,7 +35,7 @@ export function runLesson(day, opts) {
   let done = 0, firstTry = 0, answered = 0, xp = 0, misses = 0;
   let t0 = Date.now();
   const seenWrong = new Set();
-  let widgetApi = null, current = null, checkEnabled = false, selection = null, matchState = null;
+  let widgetApi = null, current = null, checkEnabled = false, selection = null, matchState = null, tokenBank = null;
   let stepIndexTotal = queue.length;
   // ---- resume support: the lesson position is saved after every step so a reload or a click away loses nothing
   const canResume = !practice && !opts.noResume;
@@ -76,7 +76,7 @@ export function runLesson(day, opts) {
     if (!queue.length) return finish();
     current = queue.shift();
     persist();
-    checkEnabled = false; selection = null; widgetApi = null; matchState = null;
+    checkEnabled = false; selection = null; widgetApi = null; matchState = null; tokenBank = null;
     body.innerHTML = '';
     body.classList.remove('pop'); void body.offsetWidth; body.classList.add('pop');
     renderHearts(); setProgress();
@@ -147,7 +147,7 @@ export function runLesson(day, opts) {
         bank.append(tk);
       });
       body.append(area, bank);
-      selection.tokens = all;
+      tokenBank = all;
     } else if (st.type === 'order') {
       const items = shuffle(st.items.map((t, i) => ({ t, i })));
       selection = [];
@@ -277,7 +277,7 @@ export function runLesson(day, opts) {
       const ok = st.answers.some(a => normalizeText(a) === g) || (st.accept ? st.accept.some(rx => new RegExp(rx, 'i').test(selection.value.trim())) : false);
       return { ok, given: selection.value };
     }
-    if (st.type === 'tokens') { const got = selection.map(i => selection.tokens.find(x => x.i === i).t); return { ok: got.join(' ') === st.answer.join(' ') || (st.alt || []).some(a => a.join(' ') === got.join(' ')), given: got.join(' ') }; }
+    if (st.type === 'tokens') { const got = selection.map(i => { const tk = (tokenBank || []).find(x => x.i === i); return tk ? tk.t : ''; }); return { ok: got.join(' ') === st.answer.join(' ') || (st.alt || []).some(a => a.join(' ') === got.join(' ')), given: got.join(' ') }; }
     if (st.type === 'order') return { ok: selection.every((v, k) => v === k), given: selection.map(i => st.items[i]).join(' → ') };
     if (st.type === 'match') return { ok: matchState.wrong <= 1, given: `${matchState.wrong} mismatches` };
     if (st.type === 'widget') { const stt = widgetApi ? widgetApi.getState() : {}; return { ok: !!st.check(stt), given: JSON.stringify(stt).slice(0, 80) }; }

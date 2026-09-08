@@ -26,12 +26,24 @@ function checkPrompt(d, s) {
   else if (/\babove\b/i.test(p) && !s.widget && !s.body) errors.push(`d${d.num} ${s.id}: prompt says "above" but has no widget/body of its own.`);
 }
 
+// md() escapes HTML, so an entity written in day prose renders as literal text ("&nbsp;").
+const ENTITY = /&(?:nbsp|amp|lt|gt|quot|apos|[a-zA-Z]{2,10}|#\d+|#x[0-9a-fA-F]+);/;
+function checkEntities(d, s) {
+  const fields = [s.prompt, s.body, s.explain, s.title, ...(s.options || []), ...(s.items || []),
+                  ...(s.terms || []).flat(), ...(s.answers || []).filter(x => typeof x === 'string')];
+  for (const f of fields) {
+    const m = typeof f === 'string' && f.match(ENTITY);
+    if (m) errors.push(`d${d.num} ${s.id || s.title}: raw HTML entity "${m[0]}" in lesson text; it renders literally. Use the real character.`);
+  }
+}
+
 for (const d of DAYS) {
   if (!d.title || !d.steps || !d.steps.length) errors.push(`d${d.num}: missing title/steps`);
   if (d.steps.some(s => s.title === 'Pending')) errors.push(`d${d.num}: still a stub`);
   const strands = new Set();
   for (const s of d.steps) {
     strands.add(s.strand);
+    checkEntities(d, s);
     if (s.type === 'info') { counts.info++; if (!s.body) errors.push(`d${d.num}: info without body (${s.title})`); if (!s.terms || !s.terms.length) warnings.push(`d${d.num}: concept card "${s.title}" has no Words-first terms`); }
     else {
       counts.q++;

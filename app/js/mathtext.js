@@ -192,7 +192,7 @@ function finalize(span, emit) {
       if (f.t === 'WS' || f.t === 'COMMA' || f.t === 'ABS' && toks.filter(t => t.t === 'ABS').length % 2) { toks.shift(); changed = true; continue; }
       if (l.t === 'WS' || l.t === 'COMMA' || l.t === 'DOTS' || (l.t === 'OP' && l.v !== '%') || l.t === 'ABS' && toks.filter(t => t.t === 'ABS').length % 2) { toks.pop(); changed = true; continue; }
       if (f.t === 'OP' && !((f.v === '-' || f.v === '−') && toks[1] && toks[1].t !== 'WS')) { toks.shift(); changed = true; continue; }
-      if (f.t === 'WORD' && f.v === 'a' && !f.att.length && toks[1] && toks[1].t === 'WS' && toks[2] && toks[2].t !== 'OP') { toks.shift(); changed = true; continue; }
+      if (f.t === 'WORD' && (f.v === 'a' || f.v === 'A') && !f.att.length && toks[1] && toks[1].t === 'WS' && toks[2] && (f.v === 'a' ? toks[2].t !== 'OP' : toks[2].t === 'NUM')) { toks.shift(); changed = true; continue; }
       if (l.t === 'WORD' && l.v === 'a' && !l.att.length && toks.length > 1 && toks[toks.length - 2].t === 'WS') { toks.pop(); changed = true; continue; }
     }
   };
@@ -265,7 +265,7 @@ function toTex(toks) {
       case 'WORD': {
         const v = t.v;
         let base;
-        const afterNum = prevCore && (prevCore.t === 'NUM' || (prevCore.t === 'OP' && prevCore.v === '%'));
+        const afterNum = prevCore && (prevCore.t === 'NUM' || (prevCore.t === 'OP' && prevCore.v === '%') || (prevCore.t === 'SYM' && ['½', '¼', '¾'].includes(prevCore.v)));
         if (FUNCS.has(v)) base = '\\' + (v === 'atan' ? 'arctan' : v === 'acos' ? 'arccos' : v === 'asin' ? 'arcsin' : v === 'mod' ? 'bmod' : v);
         else if (!t.att.length && (UNITS.has(v) || /Ω$/.test(v)) && (afterNum || v.length > 1)) base = (afterNum ? '\\,' : '') + unitTex(v);
         else if (v.length === 1) base = v;

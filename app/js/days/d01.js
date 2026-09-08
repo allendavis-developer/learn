@@ -415,11 +415,17 @@ Drag length, area and material below.`, {
     q.mc('E', 'Why is nichrome, not copper, used for a kettle element?', ['Its resistivity is about 65× higher, so a short coil has enough resistance to dissipate kilowatts as heat', 'It is a better conductor than copper', 'It is cheaper than copper', 'It does not conduct at all'], 0, 'Heating needs resistance. Copper is chosen for wiring precisely because it wastes almost no energy as heat.'),
     q.info('E', 'Power: where the energy goes', `Put the two definitions together. Voltage is joules per coulomb; current is coulombs per second. Multiply and the coulombs cancel:
 
-**P = V · I** &nbsp; (J/C) × (C/s) = J/s = **watts (W)**.
+**P = V · I**, and the units confirm it: (J/C) × (C/s) = J/s = **watts (W)**.
 
 That is the rate at which energy is delivered to the component. In a resistor every joule becomes heat: the electrons hand their energy to the vibrating atoms in those collisions. Substitute Ohm's law for the other two forms: **P = I²R** (when you know the current) and **P = V²/R** (when you know the voltage). All three say the same thing.
 
-**Why it matters.** Every resistor has a **power rating**, typically ¼ W for a small breadboard part. Exceed it and the part chars. A 1 kΩ, ¼ W resistor can take at most V = √(P·R) = √250 ≈ 15.8 V. Power also sets the electricity bill: energy = power × time, tomorrow's topic.`, {
+**Why it matters.** A resistor turns everything it absorbs into heat, and it can only shed heat into the air so fast. So every resistor is sold with a **power rating**: the most power it can dissipate before it destroys itself. A common small breadboard resistor is rated **0.25 W**, usually printed as ¼ W. That is a quarter of a joule of heat every second. Go past it and the part discolours, drifts away from its marked resistance, then chars.
+
+The rating puts a ceiling on the voltage you are allowed to put across the part, and you can work that ceiling out. Take a 1 kΩ resistor rated 0.25 W. Use the form of the power law written in terms of voltage, **P = V²/R**, because voltage is the thing you control, and rearrange it for V:
+
+V² = P · R = 0.25 × 1000 = 250, so V = √250 ≈ 15.8 V.
+
+Above about 16 V that resistor is over its rating and cooking, no matter what the rest of the circuit is doing. Power also sets the electricity bill: energy = power × time, tomorrow's topic.`, {
       terms: [
         ['Power', 'Energy per second, in watts. For a resistor P = V·I = I²R = V²/R.'],
         ['Watt (W)', 'One joule per second.'],
